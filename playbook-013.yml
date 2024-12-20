@@ -1,0 +1,24 @@
+### when conditions, check_mode, and the changed_when directive. 
+###For package upgrades, it's essential to check if the system is already up to date or
+###if certain conditions are met before executing the upgrade task.
+
+- name: Upgrade all packages
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check for available upgrades
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600  # Cache valid for 1 hour
+      register: apt_update
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist
+      when: apt_update.cache_updated
+      register: upgrade_result
+
+    - name: Print upgrade result
+      debug:
+        msg: "Packages upgraded: {{ upgrade_result }}"
+      when: upgrade_result.changed
